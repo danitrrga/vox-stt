@@ -1,0 +1,51 @@
+@import "tailwindcss";
+
+@theme {
+  --color-surface: #0a0a0b;
+  --color-surface-raised: #141416;
+  --color-surface-hover: #1c1c1f;
+  --color-border: #27272a;
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #a1a1aa;
+  --color-text-muted: #52525b;
+  --color-accent: #6366f1;
+  --color-accent-hover: #818cf8;
+  --color-recording: #ef4444;
+  --color-recording-pulse: #fca5a5;
+  --color-success: #22c55e;
+}
+
+html {
+  background: transparent;
+}
+
+body {
+  background: transparent;
+  color: var(--color-text-primary);
+  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  margin: 0;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 2px;
+}
+
+@keyframes pulse-recording {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes waveform {
+  0%, 100% { transform: scaleY(0.3); }
+  50% { transform: scaleY(1); }
+}
