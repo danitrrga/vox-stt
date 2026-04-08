@@ -3,6 +3,9 @@ name = "vox-stt-server"
 version = "0.1.0"
 description = "Local speech-to-text server for Vox"
 requires-python = ">=3.10"
+authors = [{name = "Daniel Tarraga"}]
+license = {text = "MIT"}
+keywords = ["speech-to-text", "whisper", "voice-typing", "transcription"]
 dependencies = [
     "faster-whisper>=1.0.0",
     "fastapi>=0.110",

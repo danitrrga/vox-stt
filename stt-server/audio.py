@@ -8,64 +8,70 @@ logger = logging.getLogger("vox.audio")
 
 
 class AudioRecorder:
-    """Records audio from the default microphone."""
+    """Records audio from the default microphone.
+
+    The audio stream is kept always-running for instant recording start.
+    start()/stop() just toggle a flag — no driver init on each press.
+    """
 
     def __init__(self, sample_rate: int = 16000):
         self.sample_rate = sample_rate
-        self.channels = 1
         self._buffer: list[np.ndarray] = []
         self._recording = False
-        self._stream: sd.InputStream | None = None
         self._lock = threading.Lock()
         self._rms: float = 0.0
+        self._peak_rms: float = 0.0
+        # Pre-initialize stream — always running, near-zero idle CPU
+        self._stream = sd.InputStream(
+            samplerate=self.sample_rate,
+            channels=1,
+            dtype="float32",
+            callback=self._callback,
+            blocksize=512,
+        )
+        self._stream.start()
+        logger.info("Audio stream initialized (persistent).")
 
     def start(self):
-        """Start recording from the default mic."""
+        """Enable recording — instant, no driver init."""
         with self._lock:
             if self._recording:
-                logger.warning("Already recording.")
                 return
             self._buffer = []
+            self._peak_rms = 0.0
             self._recording = True
-            self._stream = sd.InputStream(
-                samplerate=self.sample_rate,
-                channels=self.channels,
-                dtype="float32",
-                callback=self._callback,
-                blocksize=1024,
-            )
-            self._stream.start()
-            logger.info("Recording started.")
 
     def stop(self) -> np.ndarray:
-        """Stop recording and return audio as float32 numpy array."""
+        """Disable recording and return captured audio."""
         with self._lock:
             if not self._recording:
-                logger.warning("Not recording.")
                 return np.array([], dtype=np.float32)
             self._recording = False
-            if self._stream:
-                self._stream.stop()
-                self._stream.close()
-                self._stream = None
-            audio = np.concatenate(self._buffer) if self._buffer else np.array([], dtype=np.float32)
+            if self._buffer:
+                audio = np.concatenate(self._buffer)
+            else:
+                audio = np.array([], dtype=np.float32)
             self._buffer = []
-            logger.info(f"Recording stopped. {len(audio)} samples ({len(audio)/self.sample_rate:.1f}s)")
+            logger.info(f"Recording: {len(audio)} samples ({len(audio)/self.sample_rate:.1f}s)")
             return audio.flatten()
 
     def is_recording(self) -> bool:
         return self._recording
 
     def get_level(self) -> float:
-        """Return current audio RMS level (0.0 to 1.0)."""
-        return min(self._rms * 5.0, 1.0)  # amplify for visibility
+        """Return peak RMS level since last read (0.0 to 1.0)."""
+        level = self._peak_rms
+        self._peak_rms = 0.0
+        return min(level * 15.0, 1.0)
 
     def _callback(self, indata: np.ndarray, frames: int, time_info, status):
         if status:
-            logger.warning(f"Audio callback status: {status}")
+            logger.warning(f"Audio callback: {status}")
+        # Always compute RMS — level meter works even before recording starts
+        self._rms = float(np.sqrt(np.mean(indata ** 2)))
+        self._peak_rms = max(self._peak_rms, self._rms)
         if self._recording:
             self._buffer.append(indata.copy())
-            self._rms = float(np.sqrt(np.mean(indata ** 2)))
 
     @staticmethod
     def list_devices() -> list[dict]:

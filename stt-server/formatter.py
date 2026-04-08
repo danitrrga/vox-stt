@@ -9,14 +9,20 @@ FORMATTING_PROMPT = """You are a text formatter. Fix punctuation, capitalization
 
 Raw: {text}"""
 
-MIN_WORDS_FOR_FORMATTING = 15
+MIN_WORDS_FOR_FORMATTING = 30
+
+# Persistent HTTP client — avoids TCP connection overhead per call
+_ollama_client: httpx.AsyncClient | None = None
+
+
+def _get_client() -> httpx.AsyncClient:
+    global _ollama_client
+    if _ollama_client is None or _ollama_client.is_closed:
+        _ollama_client = httpx.AsyncClient(timeout=5.0)
+    return _ollama_client
 
 
 async def format_text(raw_text: str) -> dict:
-    """Format raw transcription text using Ollama.
-
-    Returns dict with keys: formatted, used_ollama.
-    """
     config = load_config()
 
     if not config.get("ollama_enabled", True):
@@ -35,7 +41,6 @@ async def format_text(raw_text: str) -> dict:
 
 
 async def _call_ollama(text: str, config: dict) -> str:
-    """Call Ollama API for text formatting."""
     url = f"{config['ollama_url']}/api/generate"
     payload = {
         "model": config.get("ollama_model", "llama3.2:3b"),
@@ -47,15 +52,14 @@ async def _call_ollama(text: str, config: dict) -> str:
         },
     }
 
-    async with httpx.AsyncClient(timeout=30.0) as client:
-        resp = await client.post(url, json=payload)
-        resp.raise_for_status()
-        data = resp.json()
-        return data.get("response", text).strip()
+    client = _get_client()
+    resp = await client.post(url, json=payload)
+    resp.raise_for_status()
+    data = resp.json()
+    return data.get("response", text).strip()
 
 
 def _basic_format(text: str) -> str:
-    """Basic formatting without LLM: capitalize first letter, add period."""
     text = text.strip()
     if not text:
         return text
@@ -66,13 +70,12 @@ def _basic_format(text: str) -> str:
 
 
 async def warm_up():
-    """Pre-warm Ollama model with a dummy request."""
     config = load_config()
     if not config.get("ollama_enabled", True):
         return
     try:
         logger.info("Warming up Ollama model...")
-        await _call_ollama("hello", config)
+        await _call_ollama("hello world this is a test of the formatting system", config)
         logger.info("Ollama warm-up complete.")
     except Exception as e:
         logger.warning(f"Ollama warm-up failed (will retry on first use): {e}")
