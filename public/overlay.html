@@ -3,188 +3,485 @@
 <head>
   <meta charset="UTF-8" />
   <style>
+    /* ── Theme tokens (synced with globals.css) ── */
+    :root {
+      --c-surface: #0a0a0b;
+      --c-border: #27272a;
+      --c-text: #fafafa;
+      --c-text-muted: #52525b;
+      --c-recording: #ef4444;
+      --c-recording-light: #fca5a5;
+      --c-accent: #6366f1;
+      --c-accent-light: #a5b4fc;
+      --c-success: #22c55e;
+      --c-success-light: #86efac;
+    }
+
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body { background: transparent; overflow: hidden; }
+
+    /* ── Pill container ── */
 
     .pill {
       display: none;
       align-items: center;
       gap: 10px;
-      padding: 8px 14px;
-      border-radius: 22px;
-      font-family: "Inter", "Segoe UI", system-ui, sans-serif;
-      font-size: 11px;
+      padding: 0 16px;
+      height: 40px;
+      margin: 4px 0;
+      border-radius: 12px;
+      font-family: "Cascadia Code PL", "Cascadia Code", monospace;
+      font-size: 10px;
       font-weight: 500;
-      letter-spacing: 0.03em;
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      transition: all 0.25s ease;
-      cursor: default;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      backdrop-filter: blur(32px);
+      -webkit-backdrop-filter: blur(32px);
+      background: color-mix(in srgb, var(--c-surface) 88%, transparent);
+      border: 1px solid color-mix(in srgb, var(--c-border) 60%, transparent);
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.5),
+        0 0 0 1px rgba(255, 255, 255, 0.03) inset;
+      cursor: grab;
       user-select: none;
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
+
+    /* ── State styles ── */
 
     .pill.recording {
       display: flex;
-      background: rgba(239, 68, 68, 0.12);
-      border: 1px solid rgba(239, 68, 68, 0.35);
-      color: #fca5a5;
+      border-color: rgba(250, 250, 250, 0.2);
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.5),
+        0 0 14px rgba(250, 250, 250, 0.06),
+        0 0 0 1px rgba(250, 250, 250, 0.05) inset;
+      color: var(--c-text);
+      animation: pill-enter 0.25s ease;
     }
+    .pill.recording .brand { color: var(--c-text); }
+
+    .pill.hands-free {
+      display: flex;
+      border-color: rgba(34, 197, 94, 0.35);
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.5),
+        0 0 14px rgba(34, 197, 94, 0.12),
+        0 0 0 1px rgba(34, 197, 94, 0.08) inset;
+      color: var(--c-success-light);
+      animation: pill-enter 0.25s ease;
+    }
+    .pill.hands-free .brand { color: var(--c-success-light); }
 
     .pill.processing {
       display: flex;
-      background: rgba(99, 102, 241, 0.12);
-      border: 1px solid rgba(99, 102, 241, 0.35);
-      color: #a5b4fc;
+      border-color: rgba(99, 102, 241, 0.35);
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.5),
+        0 0 14px rgba(99, 102, 241, 0.12),
+        0 0 0 1px rgba(99, 102, 241, 0.08) inset;
+      color: var(--c-accent-light);
+      animation: pill-enter 0.25s ease;
     }
+    .pill.processing .brand { color: var(--c-accent-light); }
 
     .pill.done {
       display: flex;
-      background: rgba(34, 197, 94, 0.12);
-      border: 1px solid rgba(34, 197, 94, 0.35);
-      color: #86efac;
+      border-color: rgba(34, 197, 94, 0.35);
+      box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.5),
+        0 0 14px rgba(34, 197, 94, 0.12),
+        0 0 0 1px rgba(34, 197, 94, 0.08) inset;
+      color: var(--c-success-light);
+      animation: pill-enter 0.25s ease;
+    }
+    .pill.done .brand { color: var(--c-success-light); }
+
+    @keyframes pill-enter {
+      from { opacity: 0; transform: translateY(-6px) scale(0.96); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
-    /* Status dot */
-    .dot {
-      width: 7px;
-      height: 7px;
+    /* ── Brand mark ── */
+
+    .brand {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      color: color-mix(in srgb, var(--c-text) 40%, transparent);
+      flex-shrink: 0;
+      transition: color 0.3s ease;
+    }
+
+    /* ── Separator ── */
+
+    .sep {
+      width: 1px;
+      height: 16px;
+      background: color-mix(in srgb, var(--c-text) 8%, transparent);
+      flex-shrink: 0;
+    }
+
+    /* ── Status indicator ── */
+
+    .indicator {
+      width: 5px;
+      height: 5px;
       border-radius: 50%;
       flex-shrink: 0;
     }
-    .recording .dot { background: #ef4444; animation: pulse 1s ease-in-out infinite; }
-    .processing .dot { background: #6366f1; animation: blink 0.8s ease-in-out infinite; }
-    .done .dot { background: #22c55e; }
+    .recording .indicator {
+      background: var(--c-text);
+      box-shadow: 0 0 6px rgba(250, 250, 250, 0.5);
+      animation: glow-pulse 1.2s ease-in-out infinite;
+    }
+    .hands-free .indicator {
+      background: var(--c-success);
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+      animation: glow-pulse 1.2s ease-in-out infinite;
+    }
+    .processing .indicator {
+      background: var(--c-accent);
+      box-shadow: 0 0 6px rgba(99, 102, 241, 0.6);
+      animation: glow-pulse 0.8s ease-in-out infinite;
+    }
+    .done .indicator {
+      background: var(--c-success);
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.6);
+    }
 
-    /* Audio visualizer bars */
+    @keyframes glow-pulse {
+      0%, 100% { opacity: 1; box-shadow: 0 0 6px currentColor; }
+      50% { opacity: 0.4; box-shadow: 0 0 2px currentColor; }
+    }
+
+    /* ── Audio visualizer ── */
+
     .visualizer {
       display: flex;
       align-items: center;
       gap: 2px;
-      height: 20px;
+      height: 22px;
+      flex: 1;
     }
+
     .visualizer .bar {
       width: 3px;
       border-radius: 1.5px;
-      background: #fca5a5;
-      transition: height 0.06s ease-out;
-      min-height: 3px;
+      transition: height 0.04s ease-out;
+      min-height: 2px;
+      will-change: height;
     }
+
+    .recording .visualizer .bar {
+      background: linear-gradient(to top, color-mix(in srgb, var(--c-text) 25%, transparent), var(--c-text));
+    }
+    .hands-free .visualizer .bar {
+      background: linear-gradient(to top, color-mix(in srgb, var(--c-success) 35%, transparent), var(--c-success-light));
+    }
+
     .processing .visualizer .bar {
-      background: #a5b4fc;
-      height: 3px !important;
-      animation: processing-wave 0.6s ease-in-out infinite;
+      background: linear-gradient(to top, color-mix(in srgb, var(--c-accent) 35%, transparent), var(--c-accent-light));
+      height: 2px !important;
+      animation: proc-wave 0.6s ease-in-out infinite;
     }
     .processing .visualizer .bar:nth-child(1) { animation-delay: 0s; }
-    .processing .visualizer .bar:nth-child(2) { animation-delay: 0.08s; }
-    .processing .visualizer .bar:nth-child(3) { animation-delay: 0.16s; }
-    .processing .visualizer .bar:nth-child(4) { animation-delay: 0.24s; }
-    .processing .visualizer .bar:nth-child(5) { animation-delay: 0.32s; }
-    .processing .visualizer .bar:nth-child(6) { animation-delay: 0.40s; }
-    .processing .visualizer .bar:nth-child(7) { animation-delay: 0.48s; }
+    .processing .visualizer .bar:nth-child(2) { animation-delay: 0.05s; }
+    .processing .visualizer .bar:nth-child(3) { animation-delay: 0.10s; }
+    .processing .visualizer .bar:nth-child(4) { animation-delay: 0.15s; }
+    .processing .visualizer .bar:nth-child(5) { animation-delay: 0.20s; }
+    .processing .visualizer .bar:nth-child(6) { animation-delay: 0.25s; }
+    .processing .visualizer .bar:nth-child(7) { animation-delay: 0.30s; }
+    .processing .visualizer .bar:nth-child(8) { animation-delay: 0.35s; }
+    .processing .visualizer .bar:nth-child(9) { animation-delay: 0.40s; }
+    .processing .visualizer .bar:nth-child(10) { animation-delay: 0.45s; }
+    .processing .visualizer .bar:nth-child(11) { animation-delay: 0.50s; }
+    .processing .visualizer .bar:nth-child(12) { animation-delay: 0.55s; }
+    .processing .visualizer .bar:nth-child(13) { animation-delay: 0.60s; }
 
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.35; }
+    .done .visualizer .bar {
+      background: color-mix(in srgb, var(--c-success) 25%, transparent);
+      height: 2px !important;
+      transition: height 0.3s ease;
     }
-    @keyframes blink {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.4; }
-    }
-    @keyframes processing-wave {
-      0%, 100% { height: 3px; }
+
+    @keyframes proc-wave {
+      0%, 100% { height: 2px; }
       50% { height: 12px; }
+    }
+
+    /* ── Label + Timer ── */
+
+    .label-group {
+      display: flex;
+      align-items: baseline;
+      gap: 6px;
+      flex-shrink: 0;
+      white-space: nowrap;
+    }
+
+    .label {
+      font-weight: 600;
+      letter-spacing: 0.08em;
+    }
+
+    .timer {
+      font-size: 9px;
+      opacity: 0.6;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.04em;
     }
   </style>
 </head>
 <body>
   <div id="pill" class="pill">
-    <div class="dot"></div>
+    <span class="brand">VOX</span>
+    <div class="sep"></div>
+    <div class="indicator"></div>
     <div id="visualizer" class="visualizer">
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
-      <div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+      <div class="bar"></div><div class="bar"></div><div class="bar"></div>
       <div class="bar"></div>
     </div>
-    <span id="label">Listening</span>
+    <div class="label-group">
+      <span id="label" class="label">REC</span>
+      <span id="timer" class="timer"></span>
+    </div>
   </div>
 
   <script>
     const pill = document.getElementById("pill");
     const label = document.getElementById("label");
+    const timerEl = document.getElementById("timer");
     const bars = document.querySelectorAll("#visualizer .bar");
     let levelInterval = null;
+    let timerInterval = null;
+    let timerSeconds = 0;
     let currentState = "idle";
+
+    function formatTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = s % 60;
+      return m + ":" + String(sec).padStart(2, "0");
+    }
+
+    function startTimer() {
+      stopTimer();
+      timerSeconds = 0;
+      timerEl.textContent = "0:00";
+      timerInterval = setInterval(() => {
+        timerSeconds++;
+        timerEl.textContent = formatTime(timerSeconds);
+      }, 1000);
+    }
+
+    function stopTimer() {
+      if (timerInterval) {
+        clearInterval(timerInterval);
+        timerInterval = null;
+      }
+    }
 
     function setState(state) {
       currentState = state;
       pill.className = "pill " + state;
 
       if (state === "recording") {
-        label.textContent = "Listening";
+        label.textContent = "REC";
         pill.style.display = "flex";
         startLevelPolling();
+        startTimer();
+      } else if (state === "hands-free") {
+        label.textContent = "FREE";
+        pill.style.display = "flex";
+        startLevelPolling();
+        // Don't restart timer — it's already running from the recording phase
+        if (!timerInterval) startTimer();
       } else if (state === "processing") {
-        label.textContent = "Transcribing";
+        label.textContent = "···";
+        timerEl.textContent = formatTime(timerSeconds);
         pill.style.display = "flex";
         stopLevelPolling();
+        stopTimer();
       } else if (state === "done") {
-        label.textContent = "Done ✓";
+        label.textContent = "OK";
         pill.style.display = "flex";
         stopLevelPolling();
+        stopTimer();
       } else {
         pill.style.display = "none";
         stopLevelPolling();
+        stopTimer();
+        timerEl.textContent = "";
       }
     }
 
+    let pollingActive = false;
+
     function startLevelPolling() {
       stopLevelPolling();
-      levelInterval = setInterval(async () => {
-        if (currentState !== "recording") return;
+      pollingActive = true;
+      let failures = 0;
+
+      async function poll() {
+        if (!pollingActive) return;
+        if (currentState !== "recording" && currentState !== "hands-free") return;
         try {
-          const resp = await fetch("http://127.0.0.1:9876/api/level");
+          const resp = await fetch(`${API}/api/level`);
           const data = await resp.json();
-          const level = data.level || 0;
-          updateBars(level);
+          updateBars(data.level || 0);
+          failures = 0;
         } catch {
-          // Server not reachable, show minimal bars
+          failures++;
           updateBars(0);
+          if (failures > 10) { pollingActive = false; return; }
         }
-      }, 60); // ~16fps
+        if (pollingActive) levelInterval = setTimeout(poll, 33);
+      }
+
+      poll();
     }
 
     function stopLevelPolling() {
+      pollingActive = false;
       if (levelInterval) {
-        clearInterval(levelInterval);
+        clearTimeout(levelInterval);
         levelInterval = null;
       }
     }
 
+    let smoothedLevel = 0;
     function updateBars(level) {
+      smoothedLevel = Math.max(level, smoothedLevel * 0.85);
       const numBars = bars.length;
       const mid = Math.floor(numBars / 2);
+      const compressed = Math.pow(smoothedLevel, 0.35);
       for (let i = 0; i < numBars; i++) {
-        // Bars are taller in the middle, with some randomness
         const distFromMid = Math.abs(i - mid) / mid;
-        const base = 3;
-        const maxH = 18;
-        const noise = (Math.random() - 0.5) * 4 * level;
-        const h = base + (maxH - base) * level * (1 - distFromMid * 0.5) + noise;
+        const base = 2;
+        const maxH = 20;
+        const noise = (Math.random() - 0.5) * 3 * compressed;
+        const h = base + (maxH - base) * compressed * (1 - distFromMid * 0.5) + noise;
         bars[i].style.height = Math.max(base, Math.min(maxH, h)) + "px";
       }
     }
 
-    // Listen for Tauri events
+    // ── Position management ──
+
+    const LP = window.__TAURI__?.window?.LogicalPosition;
+    const WIN_W = 280, WIN_H = 48;
+    const MARGIN = 20, BOTTOM_MARGIN = 60;
+
+    const API = "http://127.0.0.1:9876";
+
+    async function getWin() {
+      return window.__TAURI__?.window?.getCurrentWindow();
+    }
+
+    async function positionToPreset(preset) {
+      const win = await getWin();
+      if (!win) return;
+      try {
+        const monitor = await win.currentMonitor() || await win.primaryMonitor();
+        if (!monitor) return;
+        const s = monitor.scaleFactor || 1;
+        const sw = monitor.size.width / s;
+        const sh = monitor.size.height / s;
+
+        let x, y;
+        switch (preset) {
+          case "top-left":     x = MARGIN; y = MARGIN; break;
+          case "top-center":   x = (sw - WIN_W) / 2; y = MARGIN; break;
+          case "top-right":    x = sw - WIN_W - MARGIN; y = MARGIN; break;
+          case "bottom-left":  x = MARGIN; y = sh - WIN_H - BOTTOM_MARGIN; break;
+          case "bottom-right": x = sw - WIN_W - MARGIN; y = sh - WIN_H - BOTTOM_MARGIN; break;
+          default:             x = (sw - WIN_W) / 2; y = sh - WIN_H - BOTTOM_MARGIN; break;
+        }
+        const Pos = window.__TAURI__?.window?.LogicalPosition;
+        if (Pos) await win.setPosition(new Pos(Math.round(x), Math.round(y)));
+      } catch (e) {
+        console.error("Position error:", e);
+      }
+    }
+
+    async function savePosition() {
+      const win = await getWin();
+      if (!win) return;
+      try {
+        const pos = await win.outerPosition();
+        const s = (await win.currentMonitor())?.scaleFactor || 1;
+        const x = Math.round(pos.x / s);
+        const y = Math.round(pos.y / s);
+        fetch(`${API}/api/config`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pill_x: x, pill_y: y }),
+        }).catch(() => {});
+      } catch {}
+    }
+
+    async function restoreOrDefault() {
+      const win = await getWin();
+      if (!win) return;
+      await positionToPreset("bottom-center");
+      for (let i = 0; i < 10; i++) {
+        try {
+          const resp = await fetch(`${API}/api/config`);
+          const cfg = await resp.json();
+          if (cfg.pill_x != null && cfg.pill_y != null) {
+            const Pos = window.__TAURI__?.window?.LogicalPosition;
+            if (Pos) await win.setPosition(new Pos(cfg.pill_x, cfg.pill_y));
+          } else {
+            await positionToPreset(cfg.pill_position || "bottom-center");
+          }
+          return;
+        } catch {
+          await new Promise(r => setTimeout(r, 1000));
+        }
+      }
+    }
+
+    // ── Dragging ──
+
+    pill.addEventListener("mousedown", async () => {
+      const win = await getWin();
+      if (!win) return;
+      try {
+        await win.startDragging();
+        setTimeout(savePosition, 100);
+      } catch (e) {
+        console.error("Drag failed:", e);
+      }
+    });
+
+    // ── Init ──
+
+    restoreOrDefault();
+
     if (window.__TAURI__) {
-      window.__TAURI__.event.listen("vox-state", (event) => {
+      let positionedOnce = false;
+      window.__TAURI__.event.listen("vox-state", async (event) => {
         if (event.payload === "idle") {
           setState("done");
         } else {
           setState(event.payload);
         }
+        // Re-position on first show (window is now visible → monitor info works)
+        if (!positionedOnce && (event.payload === "recording" || event.payload === "hands-free")) {
+          positionedOnce = true;
+          await restoreOrDefault();
+        }
+      });
+
+      window.__TAURI__.event.listen("vox-pill-reset", async (event) => {
+        fetch(`${API}/api/config`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ pill_x: null, pill_y: null }),
+        }).catch(() => {});
+        await positionToPreset(event.payload || "bottom-center");
       });
     }
   </script>

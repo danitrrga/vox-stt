@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Background circle -->
+  <circle cx="256" cy="256" r="248" fill="#27272a"/>
+  <circle cx="256" cy="256" r="244" fill="#0a0a0b"/>
+
+  <!-- Glow layer -->
+  <defs>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- V blocks — 9×7 grid, cell ~44px, origin ~(58, 66) -->
+  <g fill="#6366f1" filter="url(#glow)">
+    <!-- Row 0: cols 0,1 and 7,8 -->
+    <rect x="79"  y="76"  width="38" height="44" rx="4"/>
+    <rect x="121" y="76"  width="38" height="44" rx="4"/>
+    <rect x="311" y="76"  width="38" height="44" rx="4"/>
+    <rect x="353" y="76"  width="38" height="44" rx="4"/>
+    <!-- Row 1: cols 0,1 and 7,8 -->
+    <rect x="79"  y="124" width="38" height="44" rx="4"/>
+    <rect x="121" y="124" width="38" height="44" rx="4"/>
+    <rect x="311" y="124" width="38" height="44" rx="4"/>
+    <rect x="353" y="124" width="38" height="44" rx="4"/>
+    <!-- Row 2: cols 1,2 and 6,7 -->
+    <rect x="121" y="172" width="38" height="44" rx="4"/>
+    <rect x="163" y="172" width="38" height="44" rx="4"/>
+    <rect x="269" y="172" width="38" height="44" rx="4"/>
+    <rect x="311" y="172" width="38" height="44" rx="4"/>
+    <!-- Row 3: cols 1,2 and 6,7 -->
+    <rect x="121" y="220" width="38" height="44" rx="4"/>
+    <rect x="163" y="220" width="38" height="44" rx="4"/>
+    <rect x="269" y="220" width="38" height="44" rx="4"/>
+    <rect x="311" y="220" width="38" height="44" rx="4"/>
+    <!-- Row 4: cols 2,3 and 5,6 -->
+    <rect x="163" y="268" width="38" height="44" rx="4"/>
+    <rect x="205" y="268" width="38" height="44" rx="4"/>
+    <rect x="269" y="268" width="38" height="44" rx="4"/>
+    <rect x="227" y="268" width="38" height="44" rx="4"/>
+    <!-- Row 5: cols 3,4,5 -->
+    <rect x="205" y="316" width="38" height="44" rx="4"/>
+    <rect x="247" y="316" width="38" height="44" rx="4"/>
+    <rect x="227" y="316" width="38" height="44" rx="4"/>
+    <!-- Row 6: col 4 -->
+    <rect x="237" y="364" width="38" height="44" rx="4"/>
+  </g>
+</svg>

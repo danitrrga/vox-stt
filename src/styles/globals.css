@@ -11,7 +11,6 @@
   --color-accent: #6366f1;
   --color-accent-hover: #818cf8;
   --color-recording: #ef4444;
-  --color-recording-pulse: #fca5a5;
   --color-success: #22c55e;
 }
 
@@ -26,6 +25,14 @@ body {
   margin: 0;
   overflow: hidden;
   user-select: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+*:focus-visible {
+  outline: 1px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 /* Custom scrollbar */
@@ -40,9 +47,30 @@ body {
   border-radius: 2px;
 }
 
+.titlebar-btn {
+  padding: 4px;
+  border-radius: 4px;
+  color: var(--color-text-muted);
+  transition: opacity 0.15s ease;
+  cursor: pointer;
+}
+.titlebar-btn:hover {
+  opacity: 0.8;
+}
+
 @keyframes pulse-recording {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
+}
+
+@keyframes glow-recording {
+  0%, 100% { box-shadow: 0 0 4px rgba(250, 250, 250, 0.15); }
+  50% { box-shadow: 0 0 16px rgba(250, 250, 250, 0.3), 0 0 4px rgba(250, 250, 250, 0.15); }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes waveform {
