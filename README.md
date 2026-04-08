@@ -1,4 +1,4 @@
-<![CDATA[<div align="center">
+<div align="center">
 
 ```
 ██╗   ██╗ ██████╗ ██╗  ██╗
@@ -150,4 +150,3 @@ Settings are stored at `%APPDATA%/vox/config.json`:
 ## License
 
 MIT
-]]>
